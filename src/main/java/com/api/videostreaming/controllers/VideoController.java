@@ -6,13 +6,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.api.videostreaming.entities.VideoMetadata;
 import com.api.videostreaming.pojos.requests.MetadataRequest;
 import com.api.videostreaming.pojos.requests.VideoRequest;
 import com.api.videostreaming.pojos.responses.LoadVideoResponse;

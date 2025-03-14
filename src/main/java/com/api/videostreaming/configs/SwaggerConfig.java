@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
     info = @Info(
         title = "Video-Streaming: BACKEND API'S", 
         version = "1.0", 
-        description = "API Documentation for Video-Streaming."
+        description = "API Documentation for Video-Streaming-Backend."
     )
 )
 @SecurityScheme(

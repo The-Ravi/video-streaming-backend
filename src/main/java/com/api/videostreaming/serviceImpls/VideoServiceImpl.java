@@ -85,43 +85,52 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public ResponseEntity<MetadataResponse> addOrEditVideoMetadata(Long videoId, MetadataRequest request) {
         log.info("Updating metadata for video ID: {}", videoId);
-
+    
         // Fetch the existing video
         Video video = videoRepository.findById(videoId)
                 .orElse(null);
-
+    
         if (video == null) {
             log.warn("Video with ID '{}' not found", videoId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new MetadataResponse(videoId, "Video not found", false));
         }
-
+    
         try {
-            // Update or create metadata
+            // Get existing metadata or create new one
             VideoMetadata metadata = video.getMetadata();
             if (metadata == null) {
                 metadata = new VideoMetadata();
                 metadata.setVideo(video);
             }
-
-            metadata.setSynopsis(request.getSynopsis());
-            metadata.setYearOfRelease(request.getYearOfRelease());
-            metadata.setGenre(request.getGenre());
-            metadata.setRunningTime(request.getRunningTime());
-
+    
+            // Update fields only if request values are not null
+            if (request.getSynopsis() != null) {
+                metadata.setSynopsis(request.getSynopsis());
+            }
+            if (request.getYearOfRelease() != null) {
+                metadata.setYearOfRelease(request.getYearOfRelease());
+            }
+            if (request.getGenre() != null) {
+                metadata.setGenre(request.getGenre());
+            }
+            if (request.getRunningTime() != null) {
+                metadata.setRunningTime(request.getRunningTime());
+            }
+    
             video.setMetadata(metadata);
             videoRepository.save(video);
-
+    
             log.info("Metadata updated successfully for video ID: {}", videoId);
-
+    
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new MetadataResponse(videoId, "Metadata updated successfully", true));
-
+    
         } catch (Exception e) {
             log.error("Error updating metadata for video ID: {}", videoId, e);
             throw new InternalServerErrorException("Failed to update metadata for video ID: " + videoId);
         }
-    }
+    }    
 
 
     @Override
@@ -156,7 +165,7 @@ public class VideoServiceImpl implements VideoService {
 
         } catch (Exception e) {
             log.error("Error occurred while soft deleting video ID: {}", videoId, e);
-            throw new InternalServerErrorException("Failed to soft delete video :" + videoId);
+            throw new InternalServerErrorException("Failed to soft delete video");
         }
     }
 
