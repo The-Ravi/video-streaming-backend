@@ -8,8 +8,11 @@ import com.api.videostreaming.pojos.responses.EngagementResponse;
 import com.api.videostreaming.repositories.VideoEngagementRepository;
 import com.api.videostreaming.repositories.VideoRepository;
 import com.api.videostreaming.services.EngagementService;
+
+import ch.qos.logback.classic.Logger;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class EngagementServiceImpl implements EngagementService {
+    private static final Logger log = (Logger) LoggerFactory.getLogger(EngagementServiceImpl.class);
     private final VideoRepository videoRepository;
     private final VideoEngagementRepository engagementRepository;
 
@@ -29,58 +32,55 @@ public class EngagementServiceImpl implements EngagementService {
 
     @Override
     @Transactional
-    public ResponseEntity<EngagementResponse> trackEngagement(Long videoId, Long userId, EngagementType type) {
-        log.info("Processing engagement tracking for Video ID={}, User ID={}, Type={}", videoId, userId, type);
+    public ResponseEntity<EngagementResponse> trackEngagement(Long videoId, EngagementType type) {
+        log.info("Processing engagement tracking for Video ID={}, Type={}", videoId, type);
     
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Video not found for ID: " + videoId));
     
         if (useKafka) {
             // Simulate sending event to Kafka
-            log.info("Engagement event sent to Kafka for Video ID: {}, User ID: {}, Type: {}", videoId, userId, type);
+            // KafkaTemplate<String, String> kafkaTemplate
+            // kafkaTemplate.send(topic, message)
+            log.info("Engagement event sent to Kafka for Video ID: {}, Type: {}", videoId, type);
     
             EngagementResponse response = EngagementResponse.builder()
                     .success(true)
                     .message("Engagement event sent to Kafka")
                     .videoId(videoId)
-                    .userId(userId)
                     .type(type)
                     .build();
     
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
         } else {
             // Fetch existing engagement or create a new one
-            VideoEngagements engagement = engagementRepository.findByVideoAndUserId(video, userId).orElse(null);
+            VideoEngagements engagement = engagementRepository.findByVideoId(videoId).orElse(null);
     
             if (engagement == null) {
                 engagement = VideoEngagements.builder()
                         .video(video)
-                        .userId(userId)
-                        .impressions(type == EngagementType.IMPRESSION ? 1 : 0)
-                        .views(type == EngagementType.VIEW ? 1 : 0)
                         .build();
-                log.info("New engagement created for Video ID={} and User ID={}", videoId, userId);
+                log.info("New engagement created for Video ID={}", videoId);
             } else {
                 if (type == EngagementType.IMPRESSION) {
                     engagement.setImpressions(engagement.getImpressions() + 1);
                 } else {
                     engagement.setViews(engagement.getViews() + 1);
                 }
-                log.info("Updated engagement for Video ID={} and User ID={} -> Impressions={}, Views={}",
-                        videoId, userId, engagement.getImpressions(), engagement.getViews());
+                log.info("Updated engagement for Video ID={} -> Impressions={}, Views={}",
+                        videoId, engagement.getImpressions(), engagement.getViews());
             }
     
             engagementRepository.save(engagement);
-            log.info("Engagement recorded in DB for Video ID={}, User ID={}, Type={}", videoId, userId, type);
+            log.info("Engagement recorded in DB for Video ID={}, Type={}", videoId, type);
     
             EngagementResponse response = EngagementResponse.builder()
                     .success(true)
                     .message("Engagement recorded successfully")
                     .videoId(videoId)
-                    .userId(userId)
-                    .type(type)
                     .build();
     
+            log.info("Engagement response : {}",response);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
     }

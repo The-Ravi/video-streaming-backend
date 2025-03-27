@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,6 @@ import com.api.videostreaming.services.VideoService;
 import com.api.videostreaming.utilities.Constants;
 import com.api.videostreaming.utilities.URIConstants;
 
-import org.springframework.data.domain.Page;
-
 @RestController
 @RequestMapping(URIConstants.API_VERSION + URIConstants.VIDEO_BASE_URL)
 @RequiredArgsConstructor
@@ -33,13 +32,13 @@ public class VideoController {
     private static final Logger log = (Logger) LoggerFactory.getLogger(VideoController.class);
     private final VideoService videoService;
 
-    @GetMapping(URIConstants.GET_ALL)
     @Operation(summary = "API: to get all non-deleted videos metadata", description = "", security = {@SecurityRequirement(name = "bearerAuth")})
-    public ResponseEntity<Page<VideoMetaDataResponse>> getAllVideos(@RequestParam Integer page, @RequestParam Integer size) {
-        log.info("{} [getAllVideos] Request received: page={}, size={}", Constants.REQUEST, page, size);
-        ResponseEntity<Page<VideoMetaDataResponse>> response = videoService.getAllVideos(page, size);
-        log.info("{} [getAllVideos] Response status: {}, Total Records: {}", Constants.RESPONSE, 
-        response.getStatusCode(), response.getBody() != null ? response.getBody().getTotalElements() : 0);
+    @GetMapping(URIConstants.GET_ALL)
+    public ResponseEntity<List<VideoMetaDataResponse>> getAllVideos(@RequestParam Integer page, @RequestParam Integer size) {
+        log.info("{} getAllVideos Request received: page={}, size={}", Constants.REQUEST, page, size);
+        ResponseEntity<List<VideoMetaDataResponse>> response = videoService.getAllVideos(page, size);
+        log.info("{} getAllVideos Response status: {}, Records found: {}", Constants.RESPONSE, 
+        response.getStatusCode(), response.getBody());
         
         return response;
     }
@@ -86,14 +85,14 @@ public class VideoController {
         log.info("Response: Status = {}, Video ID = {}", response.getStatusCode(), videoId); 
         return response;
     }
-
-    @GetMapping(URIConstants.LOAD_VIDEO)
+    
     @Operation(summary = "Load video content by ID", description = "Fetches video metadata by video content ID",
             security = {@SecurityRequirement(name = "bearerAuth")})
+    @GetMapping(URIConstants.LOAD_VIDEO)
     public ResponseEntity<LoadVideoResponse> loadVideoContent(@PathVariable Long videoId) {
-        log.info("{} [loadVideoContent] - Request received for videoContentId={}", Constants.REQUEST, videoId);
+        log.info("{} loadVideoContent - Request received for videoContentId={}", Constants.REQUEST, videoId);
         ResponseEntity<LoadVideoResponse> response = videoService.loadVideoContent(videoId);
-        log.info("{} [loadVideoContent] - Response status: {}", Constants.RESPONSE, response.getStatusCode());
+        log.info("{} loadVideoContent - Response status: {}", Constants.RESPONSE, response.getStatusCode());
         return response;
     }
 
@@ -117,14 +116,14 @@ public class VideoController {
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @GetMapping(URIConstants.SEARCH)
-    public ResponseEntity<Page<SearchVideoResponse>> searchVideos(
+    public ResponseEntity<List<SearchVideoResponse>> searchVideos(
             @RequestParam String searchPhrase,
             @RequestParam Integer page,
             @RequestParam Integer size) {
         
         log.info("Received search request: phrase='{}', page={}, size={}", searchPhrase, page, size);
-        ResponseEntity<Page<SearchVideoResponse>> response = videoService.searchVideos(searchPhrase, page, size);
-        log.info("Response: Status = {}, Total Videos Found = {}", response.getStatusCode(), response.getBody().getTotalElements());
+        ResponseEntity<List<SearchVideoResponse>> response = videoService.searchVideos(searchPhrase, page, size);
+        log.info("Response: Status = {}, Videos Found = {}", response.getStatusCode(), response.getBody());
         return response;
     }
 

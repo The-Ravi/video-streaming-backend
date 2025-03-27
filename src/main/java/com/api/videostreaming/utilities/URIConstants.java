@@ -17,7 +17,7 @@ public class URIConstants {
     public static final String REFRESH_TOKEN = "/token-refresh";
 
 
-        /*
+    /*
      * VIDEO URIS
     */
     public static final String VIDEO_BASE_URL = "/api/video";

@@ -1,5 +1,6 @@
 package com.api.videostreaming.implsTests;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.api.videostreaming.entities.*;
-import com.api.videostreaming.exceptions.*;
 import com.api.videostreaming.exceptions.customExceptions.InternalServerErrorException;
 import com.api.videostreaming.exceptions.customExceptions.ResourceNotFoundException;
 import com.api.videostreaming.pojos.requests.*;
@@ -128,7 +128,6 @@ class VideoServiceImplTests {
 
         ResponseEntity<SoftDeleteResponse> response = videoService.softDeleteVideo(2L);
 
-        // Assert that the response status is 404 NOT FOUND
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Video not found", response.getBody().getMessage());
@@ -157,28 +156,33 @@ class VideoServiceImplTests {
     }
 
     @Test
-    void testSearchVideos_Success() {
+    void testSearchVideos_Success_ContentOnly() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Video> videoPage = new PageImpl<>(List.of(video), pageable, 1);
+        List<Video> videoList = List.of(video); // Content only
+        Page<Video> videoPage = new PageImpl<>(videoList, pageable, 1);
 
         when(videoRepository.searchVideos("Action", pageable)).thenReturn(videoPage);
 
-        ResponseEntity<Page<SearchVideoResponse>> response = videoService.searchVideos("Action", 0, 10);
+        // Fetch only the content
+        ResponseEntity<List<SearchVideoResponse>> response = videoService.searchVideos("Action", 0, 10);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals(1, response.getBody().size()); // There should be 1 video in the response content
+        assertEquals("Test Video", response.getBody().get(0).getTitle()); // Check title of the first video
     }
 
     @Test
-    void testSearchVideos_NoResults() {
+    void testSearchVideos_NoResults_ContentOnly() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Video> emptyPage = Page.empty();
 
         when(videoRepository.searchVideos("Unknown", pageable)).thenReturn(emptyPage);
 
-        ResponseEntity<Page<SearchVideoResponse>> response = videoService.searchVideos("Unknown", 0, 10);
+        // Fetch only the content
+        ResponseEntity<List<SearchVideoResponse>> response = videoService.searchVideos("Unknown", 0, 10);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertTrue(response.getBody().isEmpty()); // The content should be empty
     }
 
     @Test
@@ -204,4 +208,45 @@ class VideoServiceImplTests {
 
         verify(videoRepository, times(1)).findById(1L);
     }
+
+    @Test
+    void testGetAllVideos_NoResults() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Video> emptyPage = Page.empty();
+        when(videoRepository.findAll(pageable)).thenReturn(emptyPage);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, 
+            () -> videoService.getAllVideos(0, 10)
+        );
+        assertEquals("No videos found", exception.getMessage());
+
+        verify(videoRepository, times(1)).findAll(pageable);
+    }
+
+
+    @Test
+    void testGetAllVideos_Success() {
+        Pageable pageable = PageRequest.of(0, 10);
+        
+        Page<Video> videoPage = new PageImpl<>(List.of(video), pageable, 1);
+        
+        when(videoRepository.findAll(pageable)).thenReturn(videoPage);
+        
+        ResponseEntity<List<VideoMetaDataResponse>> response = videoService.getAllVideos(0, 10);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        
+        VideoMetaDataResponse responseBody = response.getBody().get(0);
+        assertEquals("Test Video", responseBody.getTitle());
+        assertEquals("John Doe", responseBody.getDirector());
+        assertEquals("Action", responseBody.getGenre());
+        assertEquals(2024, responseBody.getReleaseYear());
+        assertEquals(120, responseBody.getRunningTime());
+        
+        verify(videoRepository, times(1)).findAll(pageable);
+    }    
+
 }

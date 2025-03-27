@@ -20,9 +20,6 @@ public class VideoEngagements {
     @JoinColumn(name = "video_id", nullable = false)
     private Video video;
 
-    @Column(nullable = false)
-    private Long userId; 
-
     @Enumerated(EnumType.STRING)
     private EngagementType type;
 

@@ -205,7 +205,7 @@ This repository contains a Video Engagement Statistics System built using Spring
     [Fetch Video URL from Database]  
         |  
         v  
-    [Return Streaming URL]
+    [Return PlayVideoResponse with video URL]
 
 - **Video Engagement Tracking Flow**
 

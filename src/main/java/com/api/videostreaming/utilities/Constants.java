@@ -38,8 +38,8 @@ public class Constants {
     /*
      * Code Base Constats
      */
-    public static final String REQUEST = "## Request: ";
-    public static final String RESPONSE = "-- Response: ";
+    public static final String REQUEST = "Request: ";
+    public static final String RESPONSE = "Response: ";
     public static final String TOKEN_TYPE = "tokenType"; 
     public static final String TYPE_REFRESH_TOKEN = "refresh";
     public static final String TYPE_AUTH_TOKEN = "auth";

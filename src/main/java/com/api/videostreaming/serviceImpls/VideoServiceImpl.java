@@ -1,5 +1,9 @@
 package com.api.videostreaming.serviceImpls;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -236,8 +240,8 @@ public class VideoServiceImpl implements VideoService {
     }
 
 
-     @Override
-    public ResponseEntity<Page<SearchVideoResponse>> searchVideos(String searchPhrase, int page, int size) {
+    @Override
+    public ResponseEntity<List<SearchVideoResponse>> searchVideos(String searchPhrase, int page, int size) {
         log.info("Searching videos with phrase: '{}', page={}, size={}", searchPhrase, page, size);
 
         Pageable pageable = PageRequest.of(page, size);
@@ -248,26 +252,29 @@ public class VideoServiceImpl implements VideoService {
         if (videoPage.isEmpty()) {
             log.warn("No videos found for search phrase: '{}'", searchPhrase);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Page.empty());
+                    .body(new ArrayList<>()); // Return empty list if no videos found
         }
 
         // Convert Video entities to SearchVideoResponse DTO
-        Page<SearchVideoResponse> responsePage = videoPage.map(video -> SearchVideoResponse.builder()
-                .videoId(video.getId())
-                .title(video.getTitle())
-                .director(video.getDirector())
-                .genre(video.getMetadata().getGenre())
-                .cast(video.getCast())
-                .message("Search successful")
-                .build());
+        List<SearchVideoResponse> responseList = videoPage.stream()
+                .map(video -> SearchVideoResponse.builder()
+                        .videoId(video.getId())
+                        .title(video.getTitle())
+                        .director(video.getDirector())
+                        .genre(video.getMetadata().getGenre())
+                        .cast(video.getCast())
+                        .message("Search successful")
+                        .build())
+                .collect(Collectors.toList());
 
         log.info("Search completed: Found {} videos", videoPage.getTotalElements());
 
-        return ResponseEntity.status(HttpStatus.OK).body(responsePage);
+        return ResponseEntity.status(HttpStatus.OK).body(responseList);
     }
 
+
     @Override
-    public ResponseEntity<Page<VideoMetaDataResponse>> getAllVideos(int page, int size) {
+    public ResponseEntity<List<VideoMetaDataResponse>> getAllVideos(int page, int size) {
         log.info("Fetching all videos: page={}, size={}", page, size);
 
         Pageable pageable = PageRequest.of(page, size);
@@ -276,23 +283,24 @@ public class VideoServiceImpl implements VideoService {
         Page<Video> videoPage = videoRepository.findAll(pageable);
         if (videoPage.isEmpty()) {
             log.warn("No videos found in the database");
-             throw new ResourceNotFoundException("No videos found");
+            throw new ResourceNotFoundException("No videos found");
         }
 
         // Convert Video entities to VideoMetaDataResponse DTO
-        Page<VideoMetaDataResponse> responsePage = videoPage.map(video -> VideoMetaDataResponse.builder()
-                .videoId(video.getId())
-                .title(video.getTitle())
-                .director(video.getDirector())
-                .genre(video.getMetadata().getGenre())
-                .releaseYear(video.getMetadata().getYearOfRelease())
-                .runningTime(video.getMetadata().getRunningTime())
-                .build());
+        List<VideoMetaDataResponse> responseList = videoPage.stream()
+                .map(video -> VideoMetaDataResponse.builder()
+                        .videoId(video.getId())
+                        .title(video.getTitle())
+                        .director(video.getDirector())
+                        .genre(video.getMetadata().getGenre())
+                        .releaseYear(video.getMetadata().getYearOfRelease())
+                        .runningTime(video.getMetadata().getRunningTime())
+                        .build())
+                .collect(Collectors.toList());
 
         log.info("Fetched {} videos successfully", videoPage.getTotalElements());
 
-        return ResponseEntity.status(HttpStatus.OK).body(responsePage);
+        return ResponseEntity.status(HttpStatus.OK).body(responseList);
     }
-
     
 }

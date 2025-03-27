@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-VideostreamingApplication<videostreaming>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.api.videostreaming.VideostreamingApplication",
+            "projectName": "videostreaming",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

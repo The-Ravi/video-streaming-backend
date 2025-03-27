@@ -1,5 +1,7 @@
 package com.api.videostreaming.services;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
@@ -24,8 +26,8 @@ public interface VideoService {
 
     ResponseEntity<PlayVideoResponse> playVideoContent(Long videoId);
 
-    ResponseEntity<Page<SearchVideoResponse>> searchVideos(String searchPhrase, int page, int size);
+    ResponseEntity<List<SearchVideoResponse>> searchVideos(String searchPhrase, int page, int size);
 
-    ResponseEntity<Page<VideoMetaDataResponse>> getAllVideos(int page, int size);
+    ResponseEntity<List<VideoMetaDataResponse>> getAllVideos(int page, int size);
     
 }

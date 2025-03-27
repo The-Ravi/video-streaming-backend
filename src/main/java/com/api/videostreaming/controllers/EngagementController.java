@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,15 +27,14 @@ public class EngagementController {
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @PostMapping(URIConstants.TRACK_ENGAGEMENT)
-    public ResponseEntity<Void> trackEngagement(
+    public ResponseEntity<EngagementResponse> trackEngagement(
             @PathVariable Long videoId,
-            @RequestParam Long userId,
             @RequestParam EngagementType type) {
 
-        log.info("Tracking engagement: Video ID={}, User ID={}, Type={}", videoId, userId, type);
-        engagementTrackingService.trackEngagement(videoId, userId, type);
-        log.info("Engagement tracked successfully.");
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        log.info("Tracking engagement: Video ID={}, User ID={}, Type={}", videoId, type);
+        ResponseEntity<EngagementResponse> response = engagementTrackingService.trackEngagement(videoId, type);
+        log.info("Engagement tracked successfully. Returning response: {}", response);
+        return response;
     }
 
     @Operation(
